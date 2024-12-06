@@ -146,12 +146,30 @@ func (cr *countingReader) Seek(offset int64, whence int) (int64, error) {
 	if offset == 0 {
 		return cr.curPos, nil
 	}
-	b := make([]byte, offset)
-	n, err := io.ReadFull(cr, b)
-	if err != nil && err != io.EOF {
-		return 0, err
+	totalRead := 0
+	const chunkSize = int64(1024 * 1024)
+	buf := make([]byte, chunkSize)
+
+	remaining := offset
+	for remaining > 0 {
+		// Define chunk size to read
+		toRead := chunkSize
+		if remaining < chunkSize {
+			toRead = remaining
+		}
+
+		n, err := cr.Read(buf[:toRead])
+		if err != nil && err != io.EOF {
+			return 0, err
+		}
+		totalRead += n
+		remaining -= int64(n)
+
+		if err == io.EOF {
+			break
+		}
 	}
-	return int64(n), nil
+	return int64(totalRead), nil
 }
 
 func pad(num int) int {
