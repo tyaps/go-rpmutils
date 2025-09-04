@@ -75,6 +75,22 @@ func TestReadHeader(t *testing.T) {
 		t.Errorf("incorrect header range %+v (expected %+v)",
 			hdrRange, expectedRange)
 	}
+
+	// Additional cases.
+	t.Run("check fuzzing issue", func(t *testing.T) {
+		// RMP file was generated during fuzzing testing.
+		// It can cause panic "slice bounds out of range", so check fix that returns error.
+		f, err := os.Open("./testdata/read_header_fuzzing_issue1.rpm")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer f.Close()
+
+		_, err = ReadHeader(iotest.HalfReader(f))
+		if err == nil {
+			t.Fatal(err, "error is expected")
+		}
+	})
 }
 
 func TestEpoch(t *testing.T) {
