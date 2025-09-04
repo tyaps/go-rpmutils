@@ -131,6 +131,9 @@ func readHeader(f io.Reader, hash string, hashType crypto.Hash, isSource bool, s
 				end += next + 1
 			}
 		}
+		if end >= len(data) {
+			return nil, fmt.Errorf("failed to parse entry: fail to calculate content length")
+		}
 		ents[int(tag.Tag)] = entry{
 			dataType: tag.DataType,
 			count:    tag.Count,
